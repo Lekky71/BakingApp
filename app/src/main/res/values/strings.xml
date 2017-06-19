@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">BakingApp</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_recipestep_list">recipe_steps</string>
+    <string name="title_recipestep_detail">recipe_step Detail</string>
+    <string name="title_activity_video">VideoActivity</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+</resources>
