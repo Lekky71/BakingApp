@@ -3,8 +3,12 @@ package com.lekai.root.bakingapp;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.test.espresso.IdlingResource;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -18,6 +22,7 @@ import android.widget.Toast;
 
 import com.lekai.root.bakingapp.Adapters.RecipeAdapter;
 import com.lekai.root.bakingapp.Endpoint.RecipeEndpointInterface;
+import com.lekai.root.bakingapp.IdlingResource.SimpleIdlingResource;
 import com.lekai.root.bakingapp.Recipes.Ingredient;
 import com.lekai.root.bakingapp.Recipes.Recipe;
 import com.lekai.root.bakingapp.Recipes.Step;
@@ -44,6 +49,30 @@ public class MainActivity extends AppCompatActivity {
     LayoutManager layoutManager;
     Context context;
     int orientation;
+
+    @Nullable
+    private SimpleIdlingResource mIdlingResource;
+
+    /**
+     * Only called from test, creates and returns a new {@link SimpleIdlingResource}.
+     */
+    @VisibleForTesting
+    @NonNull
+    public IdlingResource getIdlingResource() {
+        if (mIdlingResource == null) {
+            mIdlingResource = new SimpleIdlingResource();
+        }
+        return mIdlingResource;
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (recipes != null && recipes.isEmpty()) {
+            getAllRecipes();
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,7 +90,9 @@ public class MainActivity extends AppCompatActivity {
             layoutManager = new LinearLayoutManager(context);
         }
         layoutManager.setAutoMeasureEnabled(true);
-        getAllRecipes();
+        if (mIdlingResource != null) {
+            mIdlingResource.setIdleState(false);
+        }
         if(savedInstanceState != null){
             recipes = savedInstanceState.getParcelableArrayList("recipe");
         }
@@ -69,14 +100,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(recipeAdapter);
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        getIdlingResource();
     }
 
     @Override
@@ -104,6 +128,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getAllRecipes(){
+        if (mIdlingResource != null) {
+            mIdlingResource.setIdleState(false);
+        }
 
         Retrofit retrofit;
 
@@ -120,6 +147,9 @@ public class MainActivity extends AppCompatActivity {
                 recipes.clear();
                 recipes.addAll(response.body());
                 recipeAdapter.notifyDataSetChanged();
+                if (mIdlingResource != null) {
+                    mIdlingResource.setIdleState(true);
+                }
             }
 
             @Override

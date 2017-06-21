@@ -18,7 +18,6 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 
 public class VideoActivity extends AppCompatActivity {
-
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
     private String recipe_name;
@@ -38,7 +37,6 @@ public class VideoActivity extends AppCompatActivity {
         setContentView(R.layout.activity_video);
         ButterKnife.inject(this);
         if(getIntent() == null){
-            System.out.println("I have received it oooooo");
         }
             Bundle receivedBundle = getIntent().getBundleExtra("step");
             step = receivedBundle.getParcelable("testing");
@@ -73,12 +71,10 @@ public class VideoActivity extends AppCompatActivity {
                     .replace(R.id.recipe_container, recipeStepDetailFragment,Constants.STEP_DETAIL_TAG);
             transaction.commit();
         }
-
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
         if (item.getItemId()==android.R.id.home){
             onBackPressed();
         }
