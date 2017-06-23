@@ -3,11 +3,10 @@ package com.lekai.root.bakingapp;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -16,8 +15,10 @@ import com.lekai.root.bakingapp.Recipes.Step;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.Optional;
 
 public class VideoActivity extends AppCompatActivity {
+    @Optional
     @InjectView(R.id.toolbar)
     Toolbar toolbar;
     private String recipe_name;
@@ -35,20 +36,21 @@ public class VideoActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video);
+        if(toolbar != null){
+
+        }
         ButterKnife.inject(this);
         if(getIntent() == null){
         }
             Bundle receivedBundle = getIntent().getBundleExtra("step");
             step = receivedBundle.getParcelable("testing");
-            Log.d("it saw it",step.getVideoURL().toString());
-
         if (!landScape) {
             setSupportActionBar(toolbar);
             getSupportActionBar().setHomeButtonEnabled(true);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle(recipe_name);
         }else {
-            toolbar.setVisibility(View.GONE);
+//            toolbar.setVisibility(View.GONE);
         }
         showDetail();
     }
@@ -76,9 +78,10 @@ public class VideoActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId()==android.R.id.home){
-            onBackPressed();
+            NavUtils.navigateUpFromSameTask(this);
+            return true;
+        }else{
+            return super.onOptionsItemSelected(item);
         }
-
-        return super.onOptionsItemSelected(item);
     }
 }

@@ -5,10 +5,15 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.FrameLayout;
+
 import com.lekai.root.bakingapp.Adapters.IngredientAdapter;
 import com.lekai.root.bakingapp.Adapters.StepAdapter;
 import com.lekai.root.bakingapp.ExtraUtil.Constants;
@@ -38,12 +43,15 @@ public class StepsActivity extends AppCompatActivity implements StepAdapter.Item
     Context context;
     ArrayList<Step> steps;
     ArrayList<Ingredient> ingredients;
+    int configuration;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_steps);
         ButterKnife.inject(this);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         context = getBaseContext();
         layoutManager = new LinearLayoutManager(context);
         layoutManager.setAutoMeasureEnabled(true);
@@ -52,8 +60,11 @@ public class StepsActivity extends AppCompatActivity implements StepAdapter.Item
         steps = new ArrayList<>();
         ingredients = new ArrayList<>();
         Intent receivedIntent = getIntent();
-        steps = receivedIntent.getParcelableArrayListExtra("steps");
-        ingredients = receivedIntent.getParcelableArrayListExtra("ingredients");
+        if(receivedIntent.getParcelableArrayListExtra("ingredients") != null){
+            steps = receivedIntent.getParcelableArrayListExtra("steps");
+            ingredients = receivedIntent.getParcelableArrayListExtra("ingredients");
+        }
+
         if(savedInstanceState != null){
             steps = savedInstanceState.getParcelableArrayList("steps");
             ingredients = savedInstanceState.getParcelableArrayList("ingredients");
@@ -64,6 +75,7 @@ public class StepsActivity extends AppCompatActivity implements StepAdapter.Item
         ingredientAdapter = new IngredientAdapter(context,ingredients);
         ingredientsRecyclerView.setAdapter(ingredientAdapter);
         ingredientsRecyclerView.setLayoutManager(layoutManager1);
+        configuration = context.getResources().getConfiguration().orientation;
     }
 
     public void showDetail(int position) {
@@ -87,8 +99,11 @@ public class StepsActivity extends AppCompatActivity implements StepAdapter.Item
 
     @Override
     public void onItemTouch(int position) {
-        if(getApplicationContext().getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        if(getApplicationContext().getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE
+                && getApplicationContext().getResources().getConfiguration().smallestScreenWidthDp == 600) {
             showDetail(position);
+
+
         }else{
             Step steper = steps.get(position);
             Intent intent = new Intent(context,VideoActivity.class);
@@ -96,6 +111,16 @@ public class StepsActivity extends AppCompatActivity implements StepAdapter.Item
             bundle.putParcelable("testing", steper);
             intent.putExtra("step",bundle);
             startActivity(intent);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId()==android.R.id.home){
+            NavUtils.navigateUpFromSameTask(this);
+            return true;
+        }else{
+            return super.onOptionsItemSelected(item);
         }
     }
 }

@@ -6,4 +6,9 @@
     <string name="title_activity_video">VideoActivity</string>
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
+    <string name="display_recipe_ingredient_in_widget">Display Ingredients</string>
+    <string name="widget_added">Ingredient added to widget</string>
+    <string name="error_msg">Error, please try again</string>
+    <string name="package_name">com.lekai.root.bakingapp</string>
+    <string name="failure_msg">Unable to retrieve recipes; check your Internet connection</string>
 </resources>

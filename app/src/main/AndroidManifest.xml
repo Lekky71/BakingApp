@@ -3,18 +3,20 @@
     package="com.lekai.root.bakingapp">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/cakeone"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/cakeone"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -24,22 +26,40 @@
         <activity
             android:name=".StepsActivity"
             android:label="Steps"
-            android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:launchMode="singleTop"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName=".MainActivity">
+
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity"/>
+        </activity>
         <activity
             android:name=".VideoActivity"
             android:label="@string/title_activity_video"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName=".StepsActivity">
 
-        <receiver android:name=".RecipeWidgetProvider">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".StepsActivity"/>
+        </activity>
+
+        <receiver android:name=".widget.IngredientWidgetProvider">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
 
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/recipe_widget_provider_info" />
+                android:resource="@xml/recipe_ingredient_widget_info" />
         </receiver>
+        <service android:name=".widget.WidgetIntentService" android:permission="android.permission.BIND_REMOTEVIEWS"/>
+
+        <provider
+            android:authorities="com.kehinde.bakingapp.widget"
+            android:name=".widget.db.IngredientProvider"
+            android:exported="true"/>
     </application>
 
 </manifest>

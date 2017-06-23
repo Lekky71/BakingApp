@@ -6,16 +6,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/ingredient_text_view"
-        android:layout_marginLeft="5dp"
-        android:layout_marginStart="5dp"
-        android:layout_marginRight="5dp"
-        android:layout_marginEnd="5dp"
+        android:layout_marginLeft="@dimen/five_dp"
+        android:layout_marginStart="@dimen/five_dp"
+        android:layout_marginRight="@dimen/five_dp"
+        android:layout_marginEnd="@dimen/five_dp"
         android:gravity="center"
         android:textSize="20sp"
         android:textStyle="bold"
         android:fontFamily="serif-monospace" />
     <android.support.v4.widget.Space
-        android:layout_width="5dp"
+        android:layout_width="@dimen/five_dp"
         android:layout_height="match_parent" />
 
 </LinearLayout>

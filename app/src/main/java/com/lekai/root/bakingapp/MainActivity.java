@@ -1,31 +1,36 @@
 package com.lekai.root.bakingapp;
 
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.test.espresso.IdlingResource;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
-
 import com.lekai.root.bakingapp.Adapters.RecipeAdapter;
 import com.lekai.root.bakingapp.Endpoint.RecipeEndpointInterface;
+import com.lekai.root.bakingapp.ExtraUtil.Constants;
+import com.lekai.root.bakingapp.ExtraUtil.WorkUtils;
 import com.lekai.root.bakingapp.IdlingResource.SimpleIdlingResource;
 import com.lekai.root.bakingapp.Recipes.Ingredient;
 import com.lekai.root.bakingapp.Recipes.Recipe;
-import com.lekai.root.bakingapp.Recipes.Step;
+import com.lekai.root.bakingapp.widget.IngredientWidgetProvider;
+import com.lekai.root.bakingapp.widget.db.IngredientContract;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +45,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 import static android.support.v7.widget.RecyclerView.LayoutManager;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements RecipeAdapter.OnItemLongClickListener{
     public final String BASE_URL = "https://d17h27t6h515a5.cloudfront.net/topher/2017/";
     ArrayList<Recipe> recipes;
     @InjectView(R.id.recipe_recycler_view)
@@ -49,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     LayoutManager layoutManager;
     Context context;
     int orientation;
+    private SharedPreferences sharedPreferences;
 
     @Nullable
     private SimpleIdlingResource mIdlingResource;
@@ -69,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         if (recipes != null && recipes.isEmpty()) {
-            getAllRecipes();
+            makeRequest();
         }
     }
 
@@ -78,8 +84,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
         recipes = new ArrayList<>();
         context = getBaseContext();
         orientation = context.getResources().getConfiguration().orientation;
@@ -101,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(recipeAdapter);
         getIdlingResource();
+        sharedPreferences=this.getSharedPreferences(getString(R.string.package_name), Context.MODE_PRIVATE);
     }
 
     @Override
@@ -109,14 +114,46 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
+    public void makeRequest(){
+
+        if (mIdlingResource != null) {
+            mIdlingResource.setIdleState(false);
+        }
+
+        if (WorkUtils.isOnline(this)) {
+            getAllRecipes();
+
+        }else{
+            Snackbar snackbar = Snackbar.make(recyclerView, R.string.failure_msg, Snackbar.LENGTH_INDEFINITE);
+            snackbar.setAction("Retry", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    makeRequest();
+                }
+            });
+            snackbar.show();
+        }
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;
+        }else if(id ==R.id.add_widget){
+            final PopupMenu popupMenu=new PopupMenu(this,recyclerView);
+            popupMenu.inflate(R.menu.widget);
+            popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    switch (item.getItemId()){
+                        case R.id.menu_recipe: displayIngredientInWidget(2); break;
+                    }
+                    return true;
+                }
+            });
+            popupMenu.show();
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -154,11 +191,70 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<Recipe>> call, Throwable t) {
-                String TAG = "failed to connect";
-                Log.e(TAG, t.getMessage());
-                Toast.makeText(getBaseContext(), "An error occured, Check your internet connection", Toast.LENGTH_SHORT).show();
+                Snackbar snackbar = Snackbar.make(recyclerView, R.string.error_msg, Snackbar.LENGTH_INDEFINITE);
+                snackbar.setAction("Retry", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        getAllRecipes();
+                    }
+                });
+                snackbar.show();
+
             }
         });
     }
 
+    private void displayIngredientInWidget(int adapterPosition) {
+        ArrayList<Ingredient> ingredients;
+        ingredients=(ArrayList<Ingredient>) recipes.get(adapterPosition).getIngredients();
+        String recipe=recipes.get(adapterPosition).getName();
+        sharedPreferences.edit().putString(Constants.S_PREF_RECIPE,recipe).apply();
+
+
+        Uri uri1 = IngredientContract.CONTENT_URI;
+        Cursor cursor = this.getContentResolver().query(uri1,null,null,null,null);
+
+
+        if (cursor!=null) {
+            while (cursor.moveToNext()) {
+                Uri uri2 = IngredientContract.CONTENT_URI;
+                this.getContentResolver().delete(uri2,
+                        IngredientContract.Columns._ID + "=?",
+                        new String[]{cursor.getString(0)});
+
+            }
+
+            //Insert
+            ContentValues values = new ContentValues();
+
+            for (Ingredient ingredient : ingredients) {
+                values.clear();
+                values.put(IngredientContract.Columns.QUANTITY, ingredient.getQuantity());
+                values.put(IngredientContract.Columns.MEASURE, ingredient.getMeasure());
+                values.put(IngredientContract.Columns.INGREDIENT, ingredient.getIngredient());
+
+
+                Uri uri = IngredientContract.CONTENT_URI;
+                getApplicationContext().getContentResolver().insert(uri, values);
+            }
+        }
+
+        //Update the name of the recipe
+        int[] ids = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(new ComponentName(getApplication(), IngredientWidgetProvider.class));
+        IngredientWidgetProvider ingredientWidget=new IngredientWidgetProvider();
+        ingredientWidget.onUpdate(this, AppWidgetManager.getInstance(this),ids);
+
+        Context context = getApplicationContext();
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+        ComponentName thisWidget = new ComponentName(context, IngredientWidgetProvider.class);
+        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget);
+        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.ing_widget_list);
+
+    }
+
+    @Override
+    public boolean onItemLongClicked(int position) {
+        displayIngredientInWidget(position);
+        return true;
+    }
 }

@@ -27,6 +27,7 @@ import butterknife.InjectView;
 public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeAdapterViewholder>{
     ArrayList<Recipe> mRecipes;
     Context mContext;
+    OnItemLongClickListener mCallback;
     public RecipeAdapter(Context context,ArrayList<Recipe> recipes){
         mContext = context;
         mRecipes = recipes;
@@ -61,6 +62,12 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeAdap
                 mContext.startActivity(intent);
             }
         });
+        try {
+            mCallback = (OnItemLongClickListener) mContext;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(mContext.toString()
+                    + " must implement OnImageClickListener");
+        }
     }
 
     @Override
@@ -77,5 +84,8 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeAdap
             super(itemView);
             ButterKnife.inject(this,itemView);
         }
+    }
+    public interface OnItemLongClickListener {
+        boolean onItemLongClicked(int position);
     }
 }

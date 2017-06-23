@@ -54,4 +54,5 @@ public class IngredientAdapter extends RecyclerView.Adapter<IngredientAdapter.In
             ButterKnife.inject(this,itemView);
         }
     }
+
 }
