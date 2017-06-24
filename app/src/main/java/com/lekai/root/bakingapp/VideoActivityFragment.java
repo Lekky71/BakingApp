@@ -153,4 +153,12 @@ public class VideoActivityFragment extends Fragment {
         super.onDestroy();
         ButterKnife.reset(this);
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(player != null){
+            currentPosition = player.getCurrentPosition();
+        }
+    }
 }

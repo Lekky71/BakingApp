@@ -22,6 +22,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
+
 import com.lekai.root.bakingapp.Adapters.RecipeAdapter;
 import com.lekai.root.bakingapp.Endpoint.RecipeEndpointInterface;
 import com.lekai.root.bakingapp.ExtraUtil.Constants;
@@ -104,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements RecipeAdapter.OnI
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(recipeAdapter);
+        Toast.makeText(context,"Long hold a recipe to add it to the widget",Toast.LENGTH_LONG).show();
         getIdlingResource();
         sharedPreferences=this.getSharedPreferences(getString(R.string.package_name), Context.MODE_PRIVATE);
     }
@@ -253,8 +256,7 @@ public class MainActivity extends AppCompatActivity implements RecipeAdapter.OnI
     }
 
     @Override
-    public boolean onItemLongClicked(int position) {
+    public void onItemLongClicked(int position) {
         displayIngredientInWidget(position);
-        return true;
     }
 }

@@ -99,8 +99,9 @@ public class StepsActivity extends AppCompatActivity implements StepAdapter.Item
 
     @Override
     public void onItemTouch(int position) {
+
         if(getApplicationContext().getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE
-                && getApplicationContext().getResources().getConfiguration().smallestScreenWidthDp == 600) {
+                && findViewById(R.id.recipe_container_land) != null) {
             showDetail(position);
 
 

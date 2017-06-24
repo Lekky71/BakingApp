@@ -86,6 +86,6 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeAdap
         }
     }
     public interface OnItemLongClickListener {
-        boolean onItemLongClicked(int position);
+        void onItemLongClicked(int position);
     }
 }
